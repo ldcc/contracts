@@ -1,2 +1,6 @@
 # Solidity Compiles
 out/
+
+# Idea tmp
+*.iml
+.idea/

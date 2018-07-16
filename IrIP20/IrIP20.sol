@@ -13,17 +13,17 @@ contract IrIP20Interface {
 
     /// @param _owner The address from which the balance will be retrieved
     /// @return The balance
-    function balanceOf(address _owner) public view returns (uint256 balance);
+    function balanceOf(address _owner) external view returns (uint256 balance);
 
     /// @param _owner The address of the account owning tokens
     /// @param _spender The address of the account able to transfer the tokens
     /// @return Amount of remaining tokens allowed to spent
-    function allowanceOf(address _owner, address _spender) public view returns (uint256 remaining);
+    function allowanceOf(address _owner, address _spender) external view returns (uint256 remaining);
 
     /// @param _licensee The address of` the account is it licensed withdraw
     /// @param _type The address of the account able to transfer the tokens
     /// @return Authorization of licensed currency is it allowed to withdraw
-    function licenseOf(address _licensee, bool _type) public view returns (bool licensed);
+    function licenseOf(address _licensee, bool _type) external view returns (bool licensed);
 
     /// @notice `msg.sender` approves `_spender` to spend `_value` tokens
     /// @param _spender The address of the account able to transfer the tokens
@@ -85,15 +85,15 @@ contract IrIP20 is IrIP20Interface {
         licensees[msg.sender][false] = true;
     }
 
-    function balanceOf(address _owner) public view returns (uint256 balance) {
+    function balanceOf(address _owner) external view returns (uint256 balance) {
         return balances[_owner];
     }
 
-    function allowanceOf(address _owner, address _spender) public view returns (uint256 remaining) {
+    function allowanceOf(address _owner, address _spender) external view returns (uint256 remaining) {
         return allowed[_owner][_spender];
     }
 
-    function licenseOf(address _licensee, bool _type) public view returns (bool licensed) {
+    function licenseOf(address _licensee, bool _type) external view returns (bool licensed) {
         return licensees[_licensee][_type];
     }
 
@@ -112,18 +112,23 @@ contract IrIP20 is IrIP20Interface {
     function _transfer(address _from, address _to, uint256 _value) private {
         require(_value > 0);
         require(balances[_from] >= _value);
+        uint256 oldTo = balances[_to];
         balances[_from] -= _value;
         balances[_to] += _value;
         _deduction(_to, _value);
         emit Transfer(_from, _to, _value);
+        assert(oldTo < balances[_to]);
     }
 
     function _deduction(address _to, uint256 _value) private {
-        require(costpc <= 100);
-        uint256 cost = _value * costpc / 100;
-        require(_value > cost);
+        require(costpc > 0 && costpc < 100);
+        uint256 v = _value * costpc;
+        require(v >= 100 && v >= _value);
+        uint256 cost = v / 100;
+        uint256 oldThis = balances[this];
         balances[_to] -= cost;
         balances[this] += cost;
+        assert(oldThis <= balances[this]);
     }
 
     function transfer(address _to, uint256 _value) public returns (bool success) {
@@ -153,6 +158,8 @@ contract IrIP20 is IrIP20Interface {
     function withdraw(address _to, uint256 _value, bool _type) public payable returns (bool success) {
         require(licensees[msg.sender][_type]);
         if (_type) {
+            require(_value > 0);
+            assert(this.balance >= _value);
             _to.transfer(_value);
         } else {
             _transfer(this, _to, _value);

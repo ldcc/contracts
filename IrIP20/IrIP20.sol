@@ -82,10 +82,8 @@ contract IrIP20 is IrIP20Interface {
 
     function mulTransfer(address[] _tos, uint256[] _values) public returns (bool success) {
         require(_tos.length == _values.length);
-        uint256 i = 0;
-        while (i < _tos.length) {
+        for (uint256 i = 0; i < _tos.length; i++) {
             transfer(_tos[i], _values[i]);
-            i += 1;
         }
         return true;
     }

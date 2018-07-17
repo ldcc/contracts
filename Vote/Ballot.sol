@@ -3,10 +3,10 @@ pragma solidity ^0.4.21;
 
 contract Ballot {
 
-    struct Voter {
-        uint256 ticket;
-        mapping(uint8 => uint8) votes;
-    }
+    //    struct Voter {
+    //        uint256 ticket;
+    //        mapping(uint8 => uint8) votes;
+    //    }
 
     struct Proposal {
         uint8 vote;
@@ -15,7 +15,8 @@ contract Ballot {
         uint256 supporters;
     }
 
-    mapping(address => Voter) public voters;
+    // uint256 saving the number of ticket per voter
+    mapping(address => uint256) public voters;
 
     bool public status;
     string public name;
@@ -40,7 +41,7 @@ contract Ballot {
         name = _name;
         author = msg.sender;
         totalSupply = _totalSupply;
-        voters[msg.sender].ticket = _totalSupply;
+        voters[msg.sender] = _totalSupply;
         for (uint8 i = 0; i < _names.length; i++) {
             proposals.push(Proposal({
                 vote : i + 1,
@@ -51,18 +52,14 @@ contract Ballot {
     }
 
     function poll(uint8 _vote) public {
+        // Voter storage voter = voters[msg.sender];
         require(status);
         require(totalVotes < totalSupply);
         require(_vote > 0 && _vote <= proposals.length);
-        Voter storage voter = voters[msg.sender];
-        require(voter.ticket > 0);
-
+        require(voters[msg.sender] > 0);
         totalVotes++;
-        voter.ticket--;
-        voter.votes[_vote]++;
-        voters[msg.sender] = voter;
+        voters[msg.sender]--;
         proposals[_vote - 1].supporters++;
-
         emit Poll(msg.sender, _vote);
     }
 

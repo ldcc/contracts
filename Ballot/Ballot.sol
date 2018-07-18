@@ -1,5 +1,5 @@
 //pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.25;
 
 contract Ballot {
 
@@ -22,7 +22,6 @@ contract Ballot {
     Proposal[] public proposals;
 
     // solhint-disable-next-line no-simple-event-func-name
-    event Opened(uint256 timestamp);
     event Closed(uint256 timestamp);
     event Poll(address indexed voter, uint8 indexed vote);
 
@@ -35,6 +34,7 @@ contract Ballot {
         name = _name;
         author = msg.sender;
         totalSupply = _totalSupply;
+        startTime = block.timestamp;
         voters[msg.sender] = _totalSupply;
         for (uint8 i = 0; i < _names.length; i++) {
             proposals.push(Proposal({
@@ -55,11 +55,6 @@ contract Ballot {
         voters[msg.sender]--;
         proposals[_vote - 1].supporters++;
         emit Poll(msg.sender, _vote);
-    }
-
-    function opened() public {
-        startTime = block.timestamp;
-        emit Opened(startTime);
     }
 
     function closed() public payable {

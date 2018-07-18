@@ -1,5 +1,5 @@
 // Abstract contract for the full IrIP 20 Token standard
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.25;
 
 contract IrIP20Interface {
 

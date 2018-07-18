@@ -1,5 +1,6 @@
 //pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.25;
+pragma solidity ^0.4.24;
+pragma experimental "v0.5.0";
 
 contract Ballot {
 
@@ -43,7 +44,6 @@ contract Ballot {
                 desc : _descs[i],
                 supporters : 0}));
         }
-        opened();
     }
 
     function poll(uint8 _vote) public {

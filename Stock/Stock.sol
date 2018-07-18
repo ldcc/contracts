@@ -1,8 +1,11 @@
-pragma solidity ^0.4.25;
+pragma solidity ^0.4.24;
+pragma experimental "v0.5.0";
 
 contract Stock {
 
-    constructor() public {
+    uint8 public a ;
 
+    constructor() public payable {
+        a = 1;
     }
 }

@@ -3,11 +3,6 @@ pragma solidity ^0.4.21;
 
 contract Ballot {
 
-    //    struct Voter {
-    //        uint256 holds;
-    //        mapping(uint8 => uint8) votes;
-    //    }
-
     struct Proposal {
         uint8 index;
         bytes16 name;
@@ -18,7 +13,6 @@ contract Ballot {
     // uint256 saving the number of votes held per voter
     mapping(address => uint256) public voters;
 
-    bool public status;
     string public name;
     address public author;
     uint256 public totalSupply;
@@ -49,11 +43,11 @@ contract Ballot {
                 desc : _descs[i],
                 supporters : 0}));
         }
+        opened();
     }
 
     function poll(uint8 _vote) public {
         // Voter storage voter = voters[msg.sender];
-        require(status);
         require(totalVotes < totalSupply);
         require(_vote > 0 && _vote <= proposals.length);
         require(voters[msg.sender] > 0);
@@ -64,14 +58,12 @@ contract Ballot {
     }
 
     function opened() public {
-        require(!status);
-        status = true;
         startTime = block.timestamp;
         emit Opened(startTime);
     }
 
     function closed() public payable {
-        status = false;
+        require(msg.sender == author);
         endTime = block.timestamp;
         emit Closed(endTime);
         selfdestruct(author);
@@ -90,7 +82,6 @@ contract Ballot {
         for (uint256 i = 0; i < _licensees.length; i++) {
             distribute(_licensees[i], _values[i]);
         }
-
     }
 
 }

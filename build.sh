@@ -7,4 +7,10 @@ else
     rm $out*
 fi
 
-solc --bin --abi -o $out $PWD/$1/$1.sol
+if [ -n "$2" ]; then
+    file="$PWD/$1/$2.sol"
+else
+    file="$PWD/$1/$1.sol"
+fi
+
+solc --bin --abi -o $out $file

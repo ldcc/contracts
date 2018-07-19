@@ -29,41 +29,42 @@ contract IrIP20Interface {
     /// @param _spender The address of the account able to transfer the tokens
     /// @param _value The amount of tokens to be approved for transfer
     /// @return Whether the approval was successful or not
-    function approve(address _spender, uint256 _value) public returns (bool success);
+    function approve(address _spender, uint256 _value) public;
 
     /// @notice `msg.sender` licensing `_licensee` to withdraw some `_type` of currency
     /// @param _licensee The address of the account able to withdraw the tokens
     /// @param _type The currency type to be licensing for transfer
     /// @return Whether the licensing was successful or not
-    function licensing(address _licensee, bool _type) public returns (bool success);
+    function licensing(address _licensee, bool _type, bool _value) public;
 
     /// @notice send `_value` token to `_to` from `msg.sender`
     /// @param _to The address of the recipient
     /// @param _value The amount of token to be transferred
     /// @return Whether the transfer was successful or not
-    function transfer(address _to, uint256 _value) public returns (bool success);
+    function transfer(address _to, uint256 _value) public;
 
     /// @notice send `_value` token to `_to` from `_from` on the condition it is approved by `_from`
     /// @param _from The address of the sender
     /// @param _to The address of the recipient
     /// @param _value The amount of token to be transferred
     /// @return Whether the transfer was successful or not
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success);
+    function transferFrom(address _from, address _to, uint256 _value) public;
 
     /// @notice send `_values[i]` token to `_tos[i]` from `msg.sender`
     /// @param _tos The addresses of the recipient array
     /// @param _values The amounts of token to be transferred array
     /// @return Whether the transfers was successful or not
-    function mulTransfer(address[] _tos, uint256[] _values) public returns (bool success);
+    function mulTransfer(address[] _tos, uint256[] _values) public;
 
     /// @notice withdraw `_value` Wei to `_to` from this contract`
     /// @param _to The address of the recipient
     /// @param _value The amount of Wei to be transferred
     /// @param _value The currency type of _to to be withdraw, true rep IRC, false rep the token of this contract
     /// @return Whether the withdraw was successful or not
-    function withdraw(address _to, uint256 _value, bool _type) public payable returns (bool success);
+    function withdraw(address _to, uint256 _value, bool _type) public payable;
 
     // solhint-disable-next-line no-simple-event-func-name
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+    event Licensing(address _licensee, bool _type, bool _value);
 }

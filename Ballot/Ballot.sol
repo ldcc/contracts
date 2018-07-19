@@ -27,7 +27,7 @@ contract Ballot {
     event Poll(address indexed voter, uint8 indexed vote);
 
 
-    // main code
+    /// main code
 
     constructor(string _name, uint256 _totalSupply, bytes8[] _names, bytes32[] _descs) public payable {
         require(_names.length > 1);
@@ -47,14 +47,18 @@ contract Ballot {
     }
 
     function poll(uint8 _vote) public {
-        // Voter storage voter = voters[msg.sender];
         require(totalVotes < totalSupply);
         require(_vote > 0 && _vote <= proposals.length);
-        require(voters[msg.sender] > 0);
-        totalVotes++;
-        voters[msg.sender]--;
-        proposals[_vote - 1].supporters++;
-        emit Poll(msg.sender, _vote);
+        if (voters[msg.sender] > 0) {
+            require(voters[msg.sender] > 0);
+            totalVotes++;
+            voters[msg.sender]--;
+            proposals[_vote - 1].supporters++;
+            emit Poll(msg.sender, _vote);
+        } else {
+            delete voters[msg.sender];
+            revert();
+        }
     }
 
     function closed() public payable {

@@ -32,16 +32,15 @@ contract IrIP20 is IrIP20Interface {
         return licensees[_licensee][_type];
     }
 
-    function approve(address _spender, uint256 _value) public returns (bool success) {
+    function approve(address _spender, uint256 _value) public {
         allowed[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
-        return true;
     }
 
-    function licensing(address _licensee, bool _type) public returns (bool success) {
+    function licensing(address _licensee, bool _type, bool _value) public {
         require(licensees[msg.sender][_type]);
-        licensees[_licensee][_type] = true;
-        return true;
+        licensees[_licensee][_type] = _value;
+        emit Licensing(_licensee, _type, _value);
     }
 
     function _transfer(address _from, address _to, uint256 _value) private {
@@ -66,29 +65,26 @@ contract IrIP20 is IrIP20Interface {
         assert(oldThis <= balances[this]);
     }
 
-    function transfer(address _to, uint256 _value) public returns (bool success) {
+    function transfer(address _to, uint256 _value) public {
         _transfer(msg.sender, _to, _value);
-        return true;
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
+    function transferFrom(address _from, address _to, uint256 _value) public {
         uint256 allowance = allowed[_from][msg.sender];
         require(allowance > 0);
         require(allowance >= _value);
         _transfer(_from, _to, _value);
         allowed[_from][msg.sender] -= _value;
-        return true;
     }
 
-    function mulTransfer(address[] _tos, uint256[] _values) public returns (bool success) {
+    function mulTransfer(address[] _tos, uint256[] _values) public {
         require(_tos.length == _values.length);
         for (uint256 i = 0; i < _tos.length; i++) {
             transfer(_tos[i], _values[i]);
         }
-        return true;
     }
 
-    function withdraw(address _to, uint256 _value, bool _type) public payable returns (bool success) {
+    function withdraw(address _to, uint256 _value, bool _type) public payable {
         require(licensees[msg.sender][_type]);
         if (_type) {
             require(_value > 0);
@@ -97,7 +93,6 @@ contract IrIP20 is IrIP20Interface {
         } else {
             _transfer(this, _to, _value);
         }
-        return true;
     }
 
 }

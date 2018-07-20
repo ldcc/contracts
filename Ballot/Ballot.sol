@@ -49,16 +49,12 @@ contract Ballot {
     function poll(uint8 _vote) public {
         require(totalVotes < totalSupply);
         require(_vote > 0 && _vote <= proposals.length);
-        if (voters[msg.sender] > 0) {
-            require(voters[msg.sender] > 0);
-            totalVotes++;
-            voters[msg.sender]--;
-            proposals[_vote - 1].supporters++;
-            emit Poll(msg.sender, _vote);
-        } else {
-            delete voters[msg.sender];
-            revert();
-        }
+        require(voters[msg.sender] > 0);
+        require(voters[msg.sender] > 0);
+        totalVotes++;
+        voters[msg.sender]--;
+        proposals[_vote - 1].supporters++;
+        emit Poll(msg.sender, _vote);
     }
 
     function closed() public payable {

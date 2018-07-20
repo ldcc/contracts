@@ -14,10 +14,8 @@ contract Stock is StockInterface {
         name = _name;
         symbol = _symbol;
         founder = msg.sender;
-        holders[msg.sender] = Holder({
-            amount : _initialAmount,
-            frees : _initialAmount,
-            shares : new Share[](0)});
+        holders[msg.sender].amount = _initialAmount;
+        holders[msg.sender].frees = _initialAmount;
         licensees[msg.sender][0] = true;
         licensees[msg.sender][1] = true;
     }
@@ -56,60 +54,75 @@ contract Stock is StockInterface {
         emit Licensing(_licensee, _code, _value);
     }
 
-    function transfer(address _to, uint256 _value, uint256 lockPeriod) public {
-        _transfer(msg.sender, _to, _value, lockPeriod);
+    function transfer(address _to, uint256 _value, uint256 _lockPeriod) public {
+        _transfer(msg.sender, _to, _value, _lockPeriod);
     }
 
-    function transferFrom(address _from, address _to, uint256 _value, uint256 lockPeriod) public;
+    function transferFrom(address _from, address _to, uint256 _value, uint256 _lockPeriod) public {
+        _from;
+        _to;
+        _value;
+        _lockPeriod;
+    }
 
-    function mulTransfer(address[] _tos, uint256[] _values, uint256[] lockPeriod) public;
+    function mulTransfer(address[] _tos, uint256[] _values, uint256[] _lockPeriods) public {
+        _tos;
+        _values;
+        _lockPeriods;
+    }
 
-    function withdraw(address _to, uint256 _value, bool _type) public payable;
+    function withdraw(address _to, uint256 _value, bool _type) public payable {
+        _to;
+        _value;
+        _type;
+    }
 
-    function payDividend(uint8 _code) public payable;
-
-    //    function _payCash() payable {
-    //
-    //    }
-
-    //    function _payShare() payable {
-    //
-    //    }
-
-    //    function _payToken() payable {
-    //
-    //    }
-
+    function payDividend(uint8 _code) public payable {
+        _code;
+    }
 
     function _transfer(address _from, address _to, uint256 _value, uint256 _lockPeriod) private {
         require(_value > 0);
-        Holder storage h = holders[_from];
-        require(h.amount >= _value);
-        if (h.frees < _value) {
-            _upgradeHolder(h);
+        Holder storage hf = holders[_from];
+        require(hf.amount >= _value);
+        if (hf.frees < _value) {
+            _upgradeHolder(hf);
         }
-        require(h.frees >= _value);
-        //        uint256 oldTo = balances[_to];
-        //        balances[_from] -= _value;
-        //        balances[_to] += _value;
+        require(hf.frees >= _value);
+        Holder storage ht = holders[_to];
+        uint256 oldHtAmount = ht.amount;
+
+        hf.amount -= _value;
+        hf.frees -= _value;
+        ht.amount += _value;
+        if (_lockPeriod > 0) {
+            uint256 liftedPeriod = _lockPeriod + block.timestamp;
+            Share memory share = Share({
+                locks : _value,
+                liftedPeriod : liftedPeriod});
+            ht.shares.push(share);
+        } else {
+            ht.frees += _value;
+        }
         emit Transfer(_from, _to, _value, _lockPeriod);
-        //        assert(oldTo < balances[_to]);
+        assert(oldHtAmount < ht.amount);
     }
 
     function _upgradeHolder(Holder storage _h) private {
         uint256 unlocks = 0;
         uint256 present = block.timestamp;
-        Share[] memory shares = _h.shares;
-        delete _h.shares;
         for (uint8 i = 0; i < _h.shares.length; i++) {
-            Share memory share = shares[i];
-            if (present >= share.liftedPeriod) {
-                unlocks += share.locks;
-            } else {
-                _h.shares.push(share);
+            if (_h.shares[i].locks == 0) {
+                continue;
+            }
+            if (present >= _h.shares[i].liftedPeriod) {
+                unlocks += _h.shares[i].locks;
+                delete _h.shares[i];
             }
         }
-        _h.amount += unlocks;
-        _h.frees += unlocks;
+        if (unlocks > 0) {
+            _h.frees += unlocks;
+        }
     }
+
 }

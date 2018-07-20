@@ -27,24 +27,24 @@ contract StockInterface {
 
     function allowanceOf(address _owner, address _spender) external view returns (uint256 remaining);
 
-    function licenseOf(address _licensee, bool _type) external view returns (bool licensed);
+    function licenseOf(address _licensee, uint8 _type) external view returns (bool licensed);
 
     function approve(address _spender, uint256 _value) public;
 
-    function licensing(address _licensee, bool _type, bool _value) public;
+    function licensing(address _licensee, uint8 _code, bool _value) public;
 
-    function transfer(address _to, uint256 _value, uint256 lockPeriod) public;
+    function transfer(address _to, uint256 _value, uint256 _lockPeriod) public;
 
-    function transferFrom(address _from, address _to, uint256 _value, uint256 lockPeriod) public;
+    function transferFrom(address _from, address _to, uint256 _value, uint256 _lockPeriod) public;
 
-    function mulTransfer(address[] _tos, uint256[] _values, uint256[] lockPeriod) public;
+    function mulTransfer(address[] _tos, uint256[] _values, uint256[] _lockPeriod) public;
 
     function withdraw(address _to, uint256 _value, bool _type) public payable;
 
     function payDividend(uint8 currencyCode) public payable;
 
     // solhint-disable-next-line no-simple-event-func-name
-    event Transfer(address indexed _from, address indexed _to, uint256 _value, uint256 lockPeriod);
+    event Transfer(address indexed _from, address indexed _to, uint256 _value, uint256 _lockPeriod);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
     event Licensing(address _licensee, uint8 _code, bool _value);
     event PayDividend(uint256 timestamp);

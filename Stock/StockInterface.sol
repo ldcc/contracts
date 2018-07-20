@@ -48,5 +48,5 @@ contract StockInterface {
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
     event Licensing(address indexed _licensor, address indexed _licensee, uint8 _code, bool _value);
     event Withdraw(address indexed _executor, address indexed _to, uint8 _code, uint256 _value);
-    event PayDividend(address indexed _executor, uint8 currencyCode, uint256 timestamp);
+    event PayDividend(address indexed _executor, uint8 currencyCode);
 }

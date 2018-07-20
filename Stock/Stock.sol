@@ -49,10 +49,10 @@ contract Stock is StockInterface {
             require(msg.sender == founder);
         } else {
             require(msg.sender == _licensee);
-            require(licensees[_licensee][_type]);
+            require(licensees[_licensee][_code]);
         }
         licensees[_licensee][_code] = _value;
-        emit Licensing(msg.sender_licensee, _code, _value);
+        emit Licensing(msg.sender, _licensee, _code, _value);
     }
 
     function transfer(address _to, uint256 _value, uint256 _lockPeriod) public {
@@ -76,10 +76,15 @@ contract Stock is StockInterface {
     }
 
     function withdraw(address _to, uint8 _type, uint256 _value) public payable {
-        _to;
-        _type;
-        _value;
-        emit Withdraw(_to, _type, _value);
+        require(licensees[msg.sender][_type]);
+        if (_type == 0) {
+            require(_value > 0);
+            assert(address(this).balance >= _value);
+            _to.transfer(_value);
+        } else if(_type == 1) {
+            _transfer(this, _to, _value, 0);
+        }
+        emit Withdraw(msg.sender, _to, _type, _value);
     }
 
     function payDividend(uint8 _code) public payable {

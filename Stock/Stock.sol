@@ -49,36 +49,42 @@ contract Stock is StockInterface {
             require(msg.sender == founder);
         } else {
             require(msg.sender == _licensee);
+            require(licensees[_licensee][_type]);
         }
         licensees[_licensee][_code] = _value;
-        emit Licensing(_licensee, _code, _value);
+        emit Licensing(msg.sender_licensee, _code, _value);
     }
 
     function transfer(address _to, uint256 _value, uint256 _lockPeriod) public {
         _transfer(msg.sender, _to, _value, _lockPeriod);
+        emit Transfer(msg.sender, _to, _value, _lockPeriod);
     }
 
     function transferFrom(address _from, address _to, uint256 _value, uint256 _lockPeriod) public {
-        _from;
-        _to;
-        _value;
-        _lockPeriod;
+        require(allowed[_from][msg.sender] > 0);
+        require(allowed[_from][msg.sender] >= _value);
+        _transfer(_from, _to, _value, _lockPeriod);
+        emit Transfer(_from, _to, _value, _lockPeriod);
+        allowed[_from][msg.sender] -= _value;
     }
 
     function mulTransfer(address[] _tos, uint256[] _values, uint256[] _lockPeriods) public {
-        _tos;
-        _values;
-        _lockPeriods;
+        require(_tos.length == _values.length && _tos.length == _lockPeriods.length);
+        for (uint256 i = 0; i < _tos.length; i++) {
+            transfer(_tos[i], _values[i], _lockPeriods[i]);
+        }
     }
 
-    function withdraw(address _to, uint256 _value, bool _type) public payable {
+    function withdraw(address _to, uint8 _type, uint256 _value) public payable {
         _to;
-        _value;
         _type;
+        _value;
+        emit Withdraw(_to, _type, _value);
     }
 
     function payDividend(uint8 _code) public payable {
         _code;
+        emit PayDividend(msg.sender, _code);
     }
 
     function _transfer(address _from, address _to, uint256 _value, uint256 _lockPeriod) private {
@@ -104,7 +110,6 @@ contract Stock is StockInterface {
         } else {
             ht.frees += _value;
         }
-        emit Transfer(_from, _to, _value, _lockPeriod);
         assert(oldHtAmount < ht.amount);
     }
 

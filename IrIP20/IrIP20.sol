@@ -5,6 +5,7 @@ import "./IrIP20Interface.sol";
 
 contract IrIP20 is IrIP20Interface {
 
+    address public owner;
     string public name;
     string public symbol;
     uint8 public costpc;
@@ -12,6 +13,7 @@ contract IrIP20 is IrIP20Interface {
 
     constructor(uint256 _initialAmount, string _name, string _symbol, uint8 _costpc) public payable {
         totalSupply = _initialAmount * 10 ** uint256(decimals);
+        owner = msg.sender;
         name = _name;
         symbol = _symbol;
         costpc = _costpc;
@@ -38,9 +40,14 @@ contract IrIP20 is IrIP20Interface {
     }
 
     function licensing(address _licensee, bool _type, bool _value) public {
-        require(licensees[msg.sender][_type]);
+        if (_value) {
+            require(msg.sender == founder);
+        } else {
+            require(msg.sender == _licensee);
+            require(licensees[_licensee][_type]);
+        }
         licensees[_licensee][_type] = _value;
-        emit Licensing(_licensee, _type, _value);
+        emit Licensing(msg.sender, _licensee, _type, _value);
     }
 
     function _transfer(address _from, address _to, uint256 _value) private {
@@ -50,15 +57,14 @@ contract IrIP20 is IrIP20Interface {
         balances[_from] -= _value;
         balances[_to] += _value;
         _deduction(_to, _value);
-        emit Transfer(_from, _to, _value);
         assert(oldTo < balances[_to]);
     }
 
     function _deduction(address _to, uint256 _value) private {
         require(costpc > 0 && costpc < 100);
-        uint256 v = _value * costpc;
+        uint256 v = uint256(_value * costpc);
         require(v >= 100 && v >= _value);
-        uint256 cost = v / 100;
+        uint256 cost = uint256(v / 100);
         uint256 oldThis = balances[this];
         balances[_to] -= cost;
         balances[this] += cost;
@@ -67,13 +73,14 @@ contract IrIP20 is IrIP20Interface {
 
     function transfer(address _to, uint256 _value) public {
         _transfer(msg.sender, _to, _value);
+        emit Transfer(msg.sender, _to, _value);
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public {
-        uint256 allowance = allowed[_from][msg.sender];
-        require(allowance > 0);
-        require(allowance >= _value);
+        require(allowed[_from][msg.sender] > 0);
+        require(allowed[_from][msg.sender] >= _value);
         _transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
         allowed[_from][msg.sender] -= _value;
     }
 
@@ -84,7 +91,7 @@ contract IrIP20 is IrIP20Interface {
         }
     }
 
-    function withdraw(address _to, uint256 _value, bool _type) public payable {
+    function withdraw(address _to, bool _type, uint256 _value) public payable {
         require(licensees[msg.sender][_type]);
         if (_type) {
             require(_value > 0);
@@ -93,6 +100,7 @@ contract IrIP20 is IrIP20Interface {
         } else {
             _transfer(this, _to, _value);
         }
+        emit Withdraw(msg.sender, _to, _type, _value);
     }
 
 }

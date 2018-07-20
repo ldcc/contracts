@@ -61,10 +61,11 @@ contract IrIP20Interface {
     /// @param _value The amount of Wei to be transferred
     /// @param _value The currency type of _to to be withdraw, true rep IRC, false rep the token of this contract
     /// @return Whether the withdraw was successful or not
-    function withdraw(address _to, uint256 _value, bool _type) public payable;
+    function withdraw(address _to, bool _type, uint256 _value) public payable;
 
     // solhint-disable-next-line no-simple-event-func-name
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
-    event Licensing(address _licensee, bool _type, bool _value);
+    event Licensing(address indexed _licensor, address indexed _licensee, bool _type, bool _value);
+    event Withdraw(address indexed _executor, address indexed _to, bool _type, uint256 _value);
 }

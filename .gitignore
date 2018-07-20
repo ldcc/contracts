@@ -4,3 +4,6 @@ out/
 # Idea tmp
 *.iml
 .idea/
+
+# Test files
+*.js

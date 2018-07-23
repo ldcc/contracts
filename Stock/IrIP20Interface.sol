@@ -13,6 +13,7 @@ contract IrIP20Interface {
     mapping(address => mapping(address => uint256)) internal allowed;
     mapping(address => mapping(address => bool)) internal licensees;
 
+    address public founder;
     uint256 public totalSupply;
 
     function balanceOf(address _owner) external view returns (uint256 balance);

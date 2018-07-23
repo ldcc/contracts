@@ -7,7 +7,6 @@ contract Stock is StockInterface {
 
     string public name;
     string public symbol;
-    address public founder;
 
     constructor(uint256 _initialAmount, string _name, string _symbol) public payable {
         totalSupply = _initialAmount;

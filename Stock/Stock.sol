@@ -86,8 +86,8 @@ contract Stock is StockInterface {
     }
 
     function mulTransfer(address[] _tos, uint256[] _values) public {
-        uint256[] memory _lockPeriod = new uint256[](_tos.length);
-        mulTransfer(_tos, _values, _lockPeriod);
+        uint256[] memory _lockPeriods = new uint256[](_tos.length);
+        mulTransfer(_tos, _values, _lockPeriods);
     }
 
     function mulTransfer(address[] _tos, uint256[] _values, uint256[] _lockPeriods) public {

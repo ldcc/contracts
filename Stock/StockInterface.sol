@@ -31,7 +31,7 @@ contract StockInterface is IrIP20Interface {
 
     function transferFrom(address _from, address _to, uint256 _value, uint256 _lockPeriod) public;
 
-    function mulTransfer(address[] _tos, uint256[] _values, uint256[] _lockPeriod) public;
+    function mulTransfer(address[] _tos, uint256[] _values, uint256[] _lockPeriods) public;
 
     function payDividend(address _currency) public payable;
 }

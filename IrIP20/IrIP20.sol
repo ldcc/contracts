@@ -5,7 +5,6 @@ import "./IrIP20Interface.sol";
 
 contract IrIP20 is IrIP20Interface {
 
-    address public owner;
     string public name;
     string public symbol;
     uint8 public costpc;
@@ -13,13 +12,13 @@ contract IrIP20 is IrIP20Interface {
 
     constructor(uint256 _initialAmount, string _name, string _symbol, uint8 _costpc) public payable {
         totalSupply = _initialAmount * 10 ** uint256(decimals);
-        owner = msg.sender;
         name = _name;
         symbol = _symbol;
         costpc = _costpc;
+        founder = msg.sender;
         balances[msg.sender] = _initialAmount;
-        licensees[msg.sender][true] = true;
-        licensees[msg.sender][false] = true;
+        licensees[msg.sender][address(0)] = true;
+        licensees[msg.sender][address(this)] = true;
     }
 
     function balanceOf(address _owner) external view returns (uint256 balance) {
@@ -30,8 +29,8 @@ contract IrIP20 is IrIP20Interface {
         return allowed[_owner][_spender];
     }
 
-    function licenseOf(address _licensee, bool _type) external view returns (bool licensed) {
-        return licensees[_licensee][_type];
+    function licenseOf(address _licensee, address _currency) external view returns (bool licensed) {
+        return licensees[_licensee][_currency];
     }
 
     function approve(address _spender, uint256 _value) public {
@@ -39,15 +38,15 @@ contract IrIP20 is IrIP20Interface {
         emit Approval(msg.sender, _spender, _value);
     }
 
-    function licensing(address _licensee, bool _type, bool _value) public {
+    function licensing(address _licensee, address _currency, bool _value) public {
         if (_value) {
             require(msg.sender == founder);
         } else {
             require(msg.sender == _licensee);
-            require(licensees[_licensee][_type]);
+            require(licensees[_licensee][_currency]);
         }
-        licensees[_licensee][_type] = _value;
-        emit Licensing(msg.sender, _licensee, _type, _value);
+        licensees[_licensee][_currency] = _value;
+        emit Licensing(msg.sender, _licensee, _currency, _value);
     }
 
     function _transfer(address _from, address _to, uint256 _value) private {
@@ -91,16 +90,17 @@ contract IrIP20 is IrIP20Interface {
         }
     }
 
-    function withdraw(address _to, bool _type, uint256 _value) public payable {
-        require(licensees[msg.sender][_type]);
-        if (_type) {
+    function withdraw(address _to, address _currency, uint256 _value) public payable {
+        require(msg.sender == founder || licensees[msg.sender][_currency]);
+        if (_currency == address(0)) {
             require(_value > 0);
             assert(address(this).balance >= _value);
             _to.transfer(_value);
+        } else if (_currency == address(this)) {
+            _transfer(_currency, _to, _value, 0);
         } else {
-            _transfer(this, _to, _value);
+            assert(_currency.call(bytes4(keccak256("transfer")), _to, _value));
         }
-        emit Withdraw(msg.sender, _to, _type, _value);
+        emit Withdraw(msg.sender, _to, _currency, _value);
     }
-
 }

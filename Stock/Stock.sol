@@ -14,13 +14,20 @@ contract Stock is StockInterface {
         name = _name;
         symbol = _symbol;
         founder = msg.sender;
-        holderList.push(this);
-        holderList.push(msg.sender);
+        licensees[msg.sender][address(0)] = true;
+        licensees[msg.sender][address(this)] = true;
         holderMap[msg.sender].active = true;
         holderMap[msg.sender].amount = _initialAmount;
         holderMap[msg.sender].frees = _initialAmount;
-        licensees[msg.sender][0] = true;
-        licensees[msg.sender][1] = true;
+        holderList.push(this);
+        holderList.push(msg.sender);
+    }
+
+
+    /// Implementations
+
+    function balanceOf(address _owner) external view returns (uint256 balance) {
+        return holderMap[_owner].amount;
     }
 
     function shareOf(address _owner, uint8 _type) external view returns (uint256 share) {
@@ -58,17 +65,30 @@ contract Stock is StockInterface {
         emit Licensing(msg.sender, _licensee, _currency, _value);
     }
 
+    function transfer(address _to, uint256 _value) public {
+        transfer(_to, _value, 0);
+    }
+
     function transfer(address _to, uint256 _value, uint256 _lockPeriod) public {
         _transfer(msg.sender, _to, _value, _lockPeriod);
-        emit Transfer(msg.sender, _to, _value, _lockPeriod);
+        emit Transfer(msg.sender, _to, _value);
+    }
+
+    function transferFrom(address _from, address _to, uint256 _value) public {
+        transferFrom(_from, _to, _value, 0);
     }
 
     function transferFrom(address _from, address _to, uint256 _value, uint256 _lockPeriod) public {
         require(allowed[_from][msg.sender] > 0);
         require(allowed[_from][msg.sender] >= _value);
         _transfer(_from, _to, _value, _lockPeriod);
-        emit Transfer(_from, _to, _value, _lockPeriod);
+        emit Transfer(_from, _to, _value);
         allowed[_from][msg.sender] -= _value;
+    }
+
+    function mulTransfer(address[] _tos, uint256[] _values) public {
+        uint256[] memory _lockPeriod = new uint256[](_tos.length);
+        mulTransfer(_tos, _values, _lockPeriod);
     }
 
     function mulTransfer(address[] _tos, uint256[] _values, uint256[] _lockPeriods) public {
@@ -79,7 +99,7 @@ contract Stock is StockInterface {
     }
 
     function withdraw(address _to, address _currency, uint256 _value) public payable {
-        require(licensees[msg.sender][_currency]);
+        require(msg.sender == founder || licensees[msg.sender][_currency]);
         _withdraw(_to, _currency, _value);
         emit Withdraw(msg.sender, _to, _currency, _value);
     }
@@ -87,11 +107,11 @@ contract Stock is StockInterface {
     function payDividend(address _currency) public payable {
         require(msg.sender == founder);
         uint256 thisBalance = address(this).balance;
-        for (uint256 i = 0; i < holderList.length; i++) {
+        for (uint256 i = 1; i < holderList.length; i++) {
             address addr = holderList[i];
             if (holderMap[addr].amount > 0) {
                 uint8 percent = uint8(holderMap[addr].amount * 100 / totalSupply);
-                _withdraw(addr, _currency, percent * thisBalance);
+                _withdraw(addr, _currency, percent * thisBalance / 100);
             }
 
         }
@@ -106,8 +126,7 @@ contract Stock is StockInterface {
         } else if (_currency == address(this)) {
             _transfer(_currency, _to, _value, 0);
         } else {
-            assembly {}
-            assert(_currency.call(bytes4(keccak256("transfer")), this, _to, _value));
+            assert(_currency.call(bytes4(keccak256("transfer")), _to, _value));
         }
     }
 
@@ -159,5 +178,4 @@ contract Stock is StockInterface {
             _h.frees += unlocks;
         }
     }
-
 }

@@ -33,7 +33,7 @@ contract Ballot {
         name = _name;
         author = msg.sender;
         totalSupply = _totalSupply;
-        startTime = block.timestamp;
+        startTime = now;
         voters[msg.sender] = _totalSupply;
         for (uint8 i = 0; i < _names.length; i++) {
             proposals.push(Proposal({
@@ -57,7 +57,7 @@ contract Ballot {
 
     function closed() public {
         require(msg.sender == author);
-        endTime = block.timestamp;
+        endTime = now;
         emit Closed(endTime);
         selfdestruct(author);
     }

@@ -149,10 +149,9 @@ contract Stock is StockInterface {
         hf.frees -= _value;
         ht.amount += _value;
         if (_lockPeriod > 0) {
-            uint256 liftedPeriod = _lockPeriod + block.timestamp;
             Share memory share = Share({
                 locks : _value,
-                liftedPeriod : liftedPeriod});
+                liftedPeriod : _lockPeriod + now});
             ht.shares.push(share);
         } else {
             ht.frees += _value;
@@ -162,12 +161,11 @@ contract Stock is StockInterface {
 
     function _upgradeHolder(Holder storage _h) private {
         uint256 unlocks = 0;
-        uint256 present = block.timestamp;
         for (uint8 i = 0; i < _h.shares.length; i++) {
             if (_h.shares[i].locks == 0) {
                 continue;
             }
-            if (present >= _h.shares[i].liftedPeriod) {
+            if (now >= _h.shares[i].liftedPeriod) {
                 unlocks += _h.shares[i].locks;
                 delete _h.shares[i];
             }

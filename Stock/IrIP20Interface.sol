@@ -1,6 +1,5 @@
 // Abstract contract for the full IrIP 20 Token standard
 pragma solidity ^0.4.24;
-pragma experimental "v0.5.0";
 
 contract IrIP20Interface {
 
@@ -32,6 +31,6 @@ contract IrIP20Interface {
 
     function mulTransfer(address[] _tos, uint256[] _values) public;
 
-    function withdraw(address _to, address _currency, uint256 _value) public payable;
+    function withdraw(address _to, address _currency, uint256 _value) public;
 }
 

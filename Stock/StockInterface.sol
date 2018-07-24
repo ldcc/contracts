@@ -1,6 +1,5 @@
 // Abstract contract for the full IrIP 20 Token standard
 pragma solidity ^0.4.24;
-pragma experimental "v0.5.0";
 
 import "./IrIP20Interface.sol";
 
@@ -33,5 +32,5 @@ contract StockInterface is IrIP20Interface {
 
     function mulTransfer(address[] _tos, uint256[] _values, uint256[] _lockPeriods) public;
 
-    function payDividend(address _currency) public payable;
+    function payDividend(address _currency) public;
 }

@@ -1,5 +1,4 @@
 pragma solidity ^0.4.24;
-pragma experimental "v0.5.0";
 
 import "./StockInterface.sol";
 
@@ -97,13 +96,13 @@ contract Stock is StockInterface {
         }
     }
 
-    function withdraw(address _to, address _currency, uint256 _value) public payable {
+    function withdraw(address _to, address _currency, uint256 _value) public {
         require(msg.sender == founder || licensees[msg.sender][_currency]);
         _withdraw(_to, _currency, _value);
         emit Withdraw(msg.sender, _to, _currency, _value);
     }
 
-    function payDividend(address _currency) public payable {
+    function payDividend(address _currency) public {
         require(msg.sender == founder);
         uint256 thisBalance = address(this).balance;
         for (uint256 i = 1; i < holderList.length; i++) {

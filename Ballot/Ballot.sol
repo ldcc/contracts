@@ -1,6 +1,4 @@
-//pragma experimental ABIEncoderV2;
 pragma solidity ^0.4.24;
-pragma experimental "v0.5.0";
 
 contract Ballot {
 
@@ -57,7 +55,7 @@ contract Ballot {
         emit Poll(msg.sender, _vote);
     }
 
-    function closed() public payable {
+    function closed() public {
         require(msg.sender == author);
         endTime = block.timestamp;
         emit Closed(endTime);

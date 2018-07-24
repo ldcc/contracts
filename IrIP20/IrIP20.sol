@@ -1,5 +1,4 @@
 pragma solidity ^0.4.24;
-pragma experimental "v0.5.0";
 
 import "./IrIP20Interface.sol";
 
@@ -90,14 +89,14 @@ contract IrIP20 is IrIP20Interface {
         }
     }
 
-    function withdraw(address _to, address _currency, uint256 _value) public payable {
+    function withdraw(address _to, address _currency, uint256 _value) public {
         require(msg.sender == founder || licensees[msg.sender][_currency]);
         if (_currency == address(0)) {
             require(_value > 0);
             assert(address(this).balance >= _value);
             _to.transfer(_value);
         } else if (_currency == address(this)) {
-            _transfer(_currency, _to, _value, 0);
+            _transfer(_currency, _to, _value);
         } else {
             assert(_currency.call(bytes4(keccak256("transfer")), _to, _value));
         }

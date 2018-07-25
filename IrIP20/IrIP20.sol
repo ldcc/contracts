@@ -93,12 +93,12 @@ contract IrIP20 is IrIP20Interface {
         require(msg.sender == founder || licensees[msg.sender][_currency]);
         if (_currency == address(0)) {
             require(_value > 0);
-            assert(address(this).balance >= _value);
+            require(address(this).balance >= _value);
             _to.transfer(_value);
         } else if (_currency == address(this)) {
             _transfer(_currency, _to, _value);
         } else {
-            assert(_currency.call(bytes4(keccak256("transfer")), _to, _value));
+            require(_currency.call.gas(90000)(bytes4(keccak256("transfer")), _to, _value));
         }
         emit Withdraw(msg.sender, _to, _currency, _value);
     }

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.24;
 
 contract chromosphere {
 
@@ -51,10 +51,9 @@ contract chromosphere {
         delete answer;
         delete gamblers;
         if (_currency == address(0)) {
-            assert(address(this).balance >= BOUNSPOOL);
+            require(address(this).balance >= BOUNSPOOL);
         } else {
-            // TODO fix msg.origin bug
-            assert(_currency.call(bytes4(keccak256("transferFrom")), msg.sender, address(this), BOUNSPOOL));
+            require(_currency.call.gas(90000)(bytes4(keccak256("transferFrom")), msg.sender, address(this), BOUNSPOOL));
         }
         deadline = _deadline;
         pool = _currency;
@@ -95,10 +94,9 @@ contract chromosphere {
         require(_reds.length <= MAXRED && _blues.length <= MAXBLUE);
         uint256 stake = _evalStake(uint8(_reds.length), uint8(_blues.length));
         if (pool == address(0)) {
-            assert(msg.value >= stake);
+            require(msg.value >= stake);
         } else {
-            // TODO fix msg.origin bug
-            assert(pool.call(bytes4(keccak256("transferFrom")), msg.sender, address(this), stake));
+            require(pool.call.gas(90000)(bytes4(keccak256("transferFrom")), msg.sender, address(this), stake));
         }
 
         bool[MAXRED] memory reds;
@@ -116,8 +114,17 @@ contract chromosphere {
     function takePrize() public returns (bool) {
         require(!active);
         require(now < deadline + COOLDOWN);
-        // TODO get token balance
-        uint256 bal = address(this).balance;
+        uint256 bal;
+        if (pool == address(0)) {
+            bal = address(this).balance;
+        } else {
+            // TODO get token balance
+            require(pool.call.value(0).gas(0)(bytes4(keccak256("balanceOf")), address(this)));
+            assembly {
+                returndatacopy(0x0, 0x0, returndatasize)
+                return(0x0, returndatasize)
+            }
+        }
         for (uint256 i = 0; i < gamblers.length; i++) {
             Gambler memory gambler = gamblers[i];
             if (gambler.addr == msg.sender) {
@@ -136,10 +143,10 @@ contract chromosphere {
 
     function _takePrize(address _winner, uint256 _bonus) private {
         if (pool == address(0)) {
-            assert(address(this).balance >= _bonus);
+            require(address(this).balance >= _bonus);
             _winner.transfer(_bonus);
         } else {
-            assert(pool.call(bytes4(keccak256("transfer")), _winner, _bonus));
+            require(pool.call.gas(90000)(bytes4(keccak256("transfer")), _winner, _bonus));
         }
     }
 

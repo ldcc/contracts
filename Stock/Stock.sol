@@ -119,12 +119,12 @@ contract Stock is StockInterface {
     function _withdraw(address _to, address _currency, uint256 _value) internal {
         if (_currency == address(0)) {
             require(_value > 0);
-            assert(address(this).balance >= _value);
+            require(address(this).balance >= _value);
             _to.transfer(_value);
         } else if (_currency == address(this)) {
             _transfer(_currency, _to, _value, 0);
         } else {
-            assert(_currency.call(bytes4(keccak256("transfer")), _to, _value));
+            require(_currency.call.gas(90000)(bytes4(keccak256("transfer")), _to, _value));
         }
     }
 

@@ -25,7 +25,7 @@ contract chromosphere {
 
     // index 0 and 1 is the percent of rewards amount pre bet
     // index 2-5 are fixed rewards pre bet
-    uint256[6] private rewards = [uint256(70), 30, 3000, 200, 10, 5];
+    uint256[6] private bonusPool;
     uint8[MAXBALL] private answer;
     Gambler[] private gamblers;
 
@@ -47,19 +47,20 @@ contract chromosphere {
         require(_deadline >= COOLDOWN + now);
         require(now >= COOLDOWN + deadline);
 
-        delete gamblers;
+        delete bonusPool;
         delete answer;
+        delete gamblers;
         if (_currency == address(0)) {
             assert(address(this).balance >= BOUNSPOOL);
         } else {
             // TODO fix msg.origin bug
             assert(_currency.call(bytes4(keccak256("transferFrom")), msg.sender, address(this), BOUNSPOOL));
-            assembly {}
         }
         deadline = _deadline;
         pool = _currency;
         active = true;
     }
+
 
     function lottery() public {
         require(active);
@@ -71,6 +72,15 @@ contract chromosphere {
                 answer[i] = _randBall(blockhash(number - i), MAXRED);
             } else {
                 answer[i] = _randBall(blockhash(number - i), MAXBLUE);
+            }
+        }
+        // TODO get token balance
+        uint256 bal = address(this).balance;
+        for (uint256 i = 0; i < gamblers.length; i++) {
+            Gambler memory gambler = gamblers[i];
+            (uint8 level, uint256 bonus) = _evalvel(gambler, bal);
+            if (level > 0) {
+                bonusPool[level] += bonus;
             }
         }
         deadline = now;
@@ -106,15 +116,17 @@ contract chromosphere {
     function takePrize() public returns (bool) {
         require(!active);
         require(now < deadline + COOLDOWN);
+        // TODO get token balance
+        uint256 bal = address(this).balance;
         for (uint256 i = 0; i < gamblers.length; i++) {
             Gambler memory gambler = gamblers[i];
             if (gambler.addr == msg.sender) {
                 delete gamblers[i];
-                uint8 awardLevel = _evalvel(gambler);
-                if (awardLevel == 0) {
+                (uint8 level, uint256 bonus) = _evalvel(gambler, bal);
+                if (level == 0) {
                     return false;
                 } else {
-                    _takePrize(gambler.addr, awardLevel);
+                    _takePrize(gambler.addr, bonus);
                     return true;
                 }
             }
@@ -122,20 +134,16 @@ contract chromosphere {
         return false;
     }
 
-    function _takePrize(address _winner, uint8 _level) private {
-        uint256 bonus = 0;
-        if (_level == 1) {
-
-        }
+    function _takePrize(address _winner, uint256 _bonus) private {
         if (pool == address(0)) {
-            assert(address(this).balance >= bonus);
-            _winner.transfer(bonus);
+            assert(address(this).balance >= _bonus);
+            _winner.transfer(_bonus);
         } else {
-            assert(pool.call(bytes4(keccak256("transfer")), _winner, bonus));
+            assert(pool.call(bytes4(keccak256("transfer")), _winner, _bonus));
         }
     }
 
-    function _evalvel(Gambler memory _gambler) private constant returns (uint8) {
+    function _evalvel(Gambler memory _gambler, uint256 bal) private constant returns (uint8, uint256) {
         (uint8 reds, uint8 blues) = (0, 0);
         for (uint8 i = 0; i < MAXBALL; i++) {
             if (i < RADIX) {
@@ -148,27 +156,27 @@ contract chromosphere {
                 }
             }
         }
-        return _picklevel(reds, blues);
+        return _evalBonus(reds, blues, bal);
     }
 
-    function _picklevel(uint8 _reds, uint8 _blues) private pure returns (uint8) {
-        uint8 winings = _reds + _blues;
-        if (winings == MAXBALL) {
-            return 1;
-        } else if (winings == MAXBALL - 1) {
+    function _evalBonus(uint8 _reds, uint8 _blues, uint256 bal) private pure returns (uint8, uint256) {
+        uint8 stake = _reds + _blues;
+        if (stake == MAXBALL) {
+            return (1, bal * 7 / 10);
+        } else if (stake == MAXBALL - 1) {
             if (_blues == 0) {
-                return 2;
+                return (2, bal * 3 / 10);
             } else {
-                return 3;
+                return (3, stake * 3000);
             }
-        } else if (winings == MAXBALL - 2) {
-            return 4;
-        } else if (winings == MAXBALL - 3) {
-            return 5;
+        } else if (stake == MAXBALL - 2) {
+            return (4, stake * 200);
+        } else if (stake == MAXBALL - 3) {
+            return (5, stake * 10);
         } else if (_blues > 0) {
-            return 6;
+            return (6, stake * 5);
         } else {
-            return 0;
+            return (0, 0);
         }
     }
 

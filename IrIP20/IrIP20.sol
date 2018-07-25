@@ -15,7 +15,7 @@ contract IrIP20 is IrIP20Interface {
         symbol = _symbol;
         costpc = _costpc;
         founder = msg.sender;
-        balances[msg.sender] = _initialAmount;
+        balances[msg.sender] = totalSupply;
         licensees[msg.sender][address(0)] = true;
         licensees[msg.sender][address(this)] = true;
     }

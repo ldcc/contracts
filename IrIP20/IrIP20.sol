@@ -98,7 +98,8 @@ contract IrIP20 is IrIP20Interface {
         } else if (_currency == address(this)) {
             _transfer(_currency, _to, _value);
         } else {
-            require(_currency.call.gas(90000)(abi.encodeWithSignature("transfer(address,uint256)", _to, _value)));
+            bytes4 signature = bytes4(keccak256("transfer(address,uint256)"));
+            require(_currency.call.gas(90000)(signature, _to, _value));
         }
         emit Withdraw(msg.sender, _to, _currency, _value);
     }

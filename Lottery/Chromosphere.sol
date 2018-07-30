@@ -163,13 +163,12 @@ contract chromosphere {
             Gambler memory gambler = gamblers[i];
             if (gambler.addr == msg.sender) {
                 delete gamblers[i];
-                //                (uint8 level, uint256 bonus) = _evalvel(gambler);
-                //                if (level == 0) {
-                //                    return false;
-                //                } else {
-                //                    _takePrize(gambler.addr, bonus);
-                //                    return true;
-                //                }
+                if (gambler.bonusLevel == 0) {
+                    return false;
+                } else {
+                    _takePrize(gambler.addr, gambler.bonus);
+                    return true;
+                }
             }
         }
         return false;

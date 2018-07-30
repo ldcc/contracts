@@ -55,34 +55,17 @@ contract chromosphere {
         if (_currency == address(0)) {
             supply = address(this).balance;
         } else {
-                        bytes memory data = abi.encodeWithSignature("balanceOf(address)", address(this));
-            bytes memory ptr = new bytes(32);
-            uint8 result;
-            uint256 size;
+            bytes memory data = abi.encodeWithSignature("balanceOf(address)", address(this));
             assembly {
-                push1 0 push1 0
-                data mload 0x20 data add
-                push1 0 push1 _currency push1 90000
-                call
-                =: result
-                0x40 mload
-                =: ptr
-                push1 returndatasize
-                =: size
+                let result := call(90000, _currency, 0, add(data, 0x20), mload(data), 0, 0)
+                let ptr := mload(0x40)
+                let size := returndatasize
+                returndatacopy(ptr, 0, size)
 
-                push1 size push1 0 push1 ptr
-                returndatacopy
-
-                push1 result push1 ok
-                jumpi
-                push1 size push1 ptr
-                revert
-                push1 end jump
-
-                ok :
-                ptr mload
-                =: supply
-                end :
+                if iszero(result) {
+                    revert(ptr, size)
+                }
+                supply := mload(ptr)
             }
         }
         require(supply >= BONUSPOOL);

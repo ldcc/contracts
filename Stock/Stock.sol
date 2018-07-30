@@ -124,7 +124,7 @@ contract Stock is StockInterface {
         } else if (_currency == address(this)) {
             _transfer(_currency, _to, _value, 0);
         } else {
-            require(_currency.call.gas(90000)(bytes4(keccak256("transfer")), _to, _value));
+            require(_currency.call.gas(90000)(abi.encodeWithSignature("transfer(address,uint256)", _to, _value)));
         }
     }
 

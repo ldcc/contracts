@@ -102,8 +102,9 @@ contract chromosphere {
         uint256[] memory superWinners = new uint256[](gamblers.length);
         (uint256 bonusAmount, uint256 remaining) = (0, 0);
         (uint8 tops, uint8 secs, uint8 j) = (0, 0, 0);
+        Gambler memory gambler;
         for (i = 0; i < gamblers.length; i++) {
-            Gambler storage gambler = gamblers[i];
+            gambler = gamblers[i];
             (uint8 level, uint256 bonus) = _evalvel(gambler);
             gambler.bonusLevel = level;
             gambler.bonus = bonus;
@@ -118,18 +119,21 @@ contract chromosphere {
                     secs++;
                 }
             }
+            gamblers[i] = gambler;
         }
+        delete gambler;
         require(bonusSupply > bonusAmount);
         remaining = bonusSupply - bonusAmount;
         uint256 topBonus = remaining * 7 / 10;
         uint256 secBonus = remaining - topBonus;
         for (i = 0; i < superWinners.length; i++) {
-            Gambler storage gambler = gamblers[superWinners[i]];
+            gambler = gamblers[superWinners[i]];
             if (gambler.bonusLevel == 1) {
                 gambler.bonus *= (topBonus / tops);
             } else {
                 gambler.bonus *= (secBonus / secs);
             }
+            gamblers[i] = gambler;
         }
 
         deadline = now;
@@ -153,10 +157,11 @@ contract chromosphere {
 
         bool[MAXRED] memory reds;
         bool[MAXBLUE] memory blues;
-        for (uint8 i = 0; i <= _reds.length; i++) {
+        uint8 i;
+        for (i = 0; i <= _reds.length; i++) {
             reds[_reds[i]] = true;
         }
-        for (uint8 i = 0; i <= _blues.length; i++) {
+        for (i = 0; i <= _blues.length; i++) {
             blues[_blues[i]] = true;
         }
         Gambler memory gambler = Gambler(msg.sender, reds, blues, 0, 0);
@@ -208,7 +213,7 @@ contract chromosphere {
         }
     }
 
-    function _evalvel(Gambler storage _gambler) private constant returns (uint8 level, uint256 bonus) {
+    function _evalvel(Gambler memory _gambler) private constant returns (uint8 level, uint256 bonus) {
         (uint8 reds, uint8 blues) = (0, 0);
         for (uint8 i = 0; i < MAXBALL; i++) {
             if (i < RADIX) {
@@ -216,7 +221,7 @@ contract chromosphere {
                     reds += 1;
                 }
             } else {
-                if (_gambler.reds[answer[i]]) {
+                if (_gambler.blues[answer[i]]) {
                     blues += 1;
                 }
             }

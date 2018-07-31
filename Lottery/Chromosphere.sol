@@ -2,6 +2,12 @@ pragma solidity ^0.4.24;
 
 contract chromosphere {
 
+    event Open(address indexed _currency, uint256 _currenttime, uint256 _deadline);
+    event Lottery(uint256 _bonusAmount, uint256 _currenttime);
+    event Enter(address indexed _gambler, uint256 _stake);
+    event TakePrize(address indexed _gambler, uint8 indexed _level, uint256 indexed _bonus);
+    event Withdraw(address indexed _drawer, address indexed _to, address indexed _currency, uint256 _value);
+
     uint8 private constant PRICE = 2;
     uint8 private constant RADIX = 6;
     uint8 private constant MAXRED = 33;
@@ -76,6 +82,7 @@ contract chromosphere {
         deadline = _deadline;
         pool = _currency;
         active = true;
+        emit Open(_currency, now, _deadline);
     }
 
 
@@ -127,6 +134,7 @@ contract chromosphere {
 
         deadline = now;
         active = false;
+        emit Lottery(bonusAmount, now);
         assert(answer.length == MAXBALL);
     }
 
@@ -154,9 +162,10 @@ contract chromosphere {
         Gambler memory gambler = Gambler(msg.sender, reds, blues, 0, 0);
         gamblers.push(gambler);
         bonusSupply += stake;
+        emit Enter(msg.sender, stake);
     }
 
-    function takePrize() public returns (bool) {
+    function takePrize() public {
         require(!active);
         require(now < deadline + COOLDOWN);
         for (uint256 i = 0; i < gamblers.length; i++) {
@@ -164,14 +173,29 @@ contract chromosphere {
             if (gambler.addr == msg.sender) {
                 delete gamblers[i];
                 if (gambler.bonusLevel == 0) {
-                    return false;
+                    revert("Not in winning.");
                 } else {
                     _takePrize(gambler.addr, gambler.bonus);
-                    return true;
+                    emit TakePrize(gambler.addr, gambler.bonusLevel, gambler.bonus);
+                    return;
                 }
             }
         }
-        return false;
+        revert("Not in gamblers.");
+    }
+
+    function withdraw(address _to, address _currency, uint256 _value) public {
+        require(msg.sender == founder);
+        require(_currency != address(this));
+        if (_currency == address(0)) {
+            require(_value > 0);
+            require(address(this).balance >= _value);
+            _to.transfer(_value);
+        } else {
+            bytes4 signature = bytes4(keccak256("transfer(address,uint256)"));
+            require(_currency.call.gas(90000)(signature, _to, _value));
+        }
+        emit Withdraw(msg.sender, _to, _currency, _value);
     }
 
     function _takePrize(address _winner, uint256 _bonus) private {

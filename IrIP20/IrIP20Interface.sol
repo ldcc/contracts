@@ -6,7 +6,7 @@ contract IrIP20Interface {
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
     event Licensing(address indexed _licensor, address indexed _licensee, address indexed _currency, bool _value);
-    event Withdraw(address indexed _executor, address indexed _to, address indexed _currency, uint256 _value);
+    event Withdraw(address indexed _drawer, address indexed _to, address indexed _currency, uint256 _value);
 
     mapping(address => uint256) internal balances;
     mapping(address => mapping(address => uint256)) internal allowed;

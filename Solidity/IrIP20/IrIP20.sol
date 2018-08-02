@@ -6,13 +6,19 @@ contract IrIP20 is IrIP20Interface {
 
     string public name;
     string public symbol;
+    uint256 public costmin;
+    uint256 public costmax;
     uint8 public costpc;
     uint8 public decimals = 18;
 
-    constructor(uint256 _initialAmount, string _name, string _symbol, uint8 _costpc) public payable {
-        totalSupply = _initialAmount * 10 ** uint256(decimals);
+    constructor(string _name, string _symbol, uint256 _initialAmount, uint256 _costmin, uint256 _costmax, uint8 _costpc) public payable {
+        require(_costpc > 0 && _costpc < 100);
+        require(_costmin > 0 && _costmin >= costmax);
         name = _name;
         symbol = _symbol;
+        totalSupply = _initialAmount * 10 ** uint256(decimals);
+        costmin = _costmin;
+        costmax = _costmax;
         costpc = _costpc;
         founder = msg.sender;
         balances[msg.sender] = totalSupply;
@@ -49,7 +55,7 @@ contract IrIP20 is IrIP20Interface {
     }
 
     function _transfer(address _from, address _to, uint256 _value) private {
-        require(_value > 0);
+        require(_value > costmin);
         require(balances[_from] >= _value);
         uint256 oldTo = balances[_to];
         balances[_from] -= _value;
@@ -59,14 +65,16 @@ contract IrIP20 is IrIP20Interface {
     }
 
     function _deduction(address _to, uint256 _value) private {
-        require(costpc > 0 && costpc < 100);
-        uint256 v = uint256(_value * costpc);
-        require(v >= 100 && v >= _value);
-        uint256 cost = uint256(v / 100);
         uint256 oldThis = balances[this];
+        uint256 v = uint256(_value * costpc);
+        uint256 cost = uint256(v / 100);
+        require(v >= _value && cost >= costmin);
+        if (cost > costmax) {
+            cost = costmax;
+        }
         balances[_to] -= cost;
         balances[this] += cost;
-        assert(oldThis <= balances[this]);
+        assert(oldThis < balances[this]);
     }
 
     function transfer(address _to, uint256 _value) public {

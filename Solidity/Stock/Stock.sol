@@ -106,7 +106,7 @@ contract Stock is StockInterface {
         emit Withdraw(_to, _currency, _value);
     }
 
-    function extentSupply(uint256 _value) public {
+    function extendSupply(uint256 _value) public {
         require(msg.sender == founder);
         require(extend);
         require(_value > 0);
@@ -120,6 +120,7 @@ contract Stock is StockInterface {
         assert(totalSupply > oldSupply);
         assert(holder.amount > oldAmount);
         assert(holder.frees > oldFrees);
+        emit ExtendSupply(_value);
     }
 
     function payDividend(address _currency) public {

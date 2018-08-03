@@ -1,5 +1,5 @@
-# Solidity Compiles
-out/
+# Compiles
+# out/
 
 # Idea tmp
 *.iml

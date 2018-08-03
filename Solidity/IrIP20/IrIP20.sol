@@ -111,7 +111,7 @@ contract IrIP20 is IrIP20Interface {
         emit Withdraw(_to, _currency, _value);
     }
 
-    function extentSupply(uint256 _value) public {
+    function extendSupply(uint256 _value) public {
         require(msg.sender == founder);
         require(extend);
         require(_value > 0);
@@ -122,5 +122,6 @@ contract IrIP20 is IrIP20Interface {
         balances[this] += extendValue;
         assert(totalSupply > oldSupply);
         assert(balances[this] > oldThis);
+        emit ExtendSupply(_value);
     }
 }

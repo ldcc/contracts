@@ -4,28 +4,32 @@ import "./StockInterface.sol";
 
 contract Stock is StockInterface {
 
-    string public name;
-    string public symbol;
-
-    constructor(uint256 _initialAmount, string _name, string _symbol) public payable {
-        totalSupply = _initialAmount;
+    constructor(string _name, string _symbol, uint256 _initialAmount, uint256 _costmin, uint256 _costmax, uint8 _costpc, bool _extend) public payable {
+        require(_costpc > 0 && _costpc < 100);
+        require(_costmin > 0 && _costmin >= costmax);
         name = _name;
         symbol = _symbol;
+        totalSupply = _initialAmount;
+        costmin = _costmin;
+        costmax = _costmax;
+        costpc = _costpc;
+        extend = _extend;
         founder = msg.sender;
         licensees[msg.sender][address(0)] = true;
         licensees[msg.sender][address(this)] = true;
         holderMap[msg.sender].active = true;
         holderMap[msg.sender].amount = _initialAmount;
         holderMap[msg.sender].frees = _initialAmount;
-        holderList.push(this);
+        holderMap[address(this)].active = true;
         holderList.push(msg.sender);
+        holderList.push(address(this));
     }
 
 
     /// Implementations
 
     function balanceOf(address _owner) external view returns (uint256 balance) {
-        return holderMap[_owner].amount;
+        return this.shareOf(_owner, 1);
     }
 
     function shareOf(address _owner, uint8 _type) external view returns (uint256 share) {
@@ -99,7 +103,23 @@ contract Stock is StockInterface {
     function withdraw(address _to, address _currency, uint256 _value) public {
         require(msg.sender == founder || licensees[msg.sender][_currency]);
         _withdraw(_to, _currency, _value);
-        emit Withdraw(msg.sender, _to, _currency, _value);
+        emit Withdraw(_to, _currency, _value);
+    }
+
+    function extentSupply(uint256 _value) public {
+        require(msg.sender == founder);
+        require(extend);
+        require(_value > 0);
+        Holder storage holder = holderMap[address(this)];
+        uint256 oldSupply = totalSupply;
+        uint256 oldAmount = holder.amount;
+        uint256 oldFrees = holder.frees;
+        totalSupply += _value;
+        holder.amount += _value;
+        holder.frees += _value;
+        assert(totalSupply > oldSupply);
+        assert(holder.amount > oldAmount);
+        assert(holder.frees > oldFrees);
     }
 
     function payDividend(address _currency) public {
@@ -111,7 +131,6 @@ contract Stock is StockInterface {
                 uint8 percent = uint8(holderMap[addr].amount * 100 / totalSupply);
                 _withdraw(addr, _currency, percent * thisBalance / 100);
             }
-
         }
         emit PayDividend(msg.sender, _currency);
     }
@@ -130,7 +149,7 @@ contract Stock is StockInterface {
     }
 
     function _transfer(address _from, address _to, uint256 _value, uint256 _lockPeriod) private {
-        require(_value > 0);
+        require(_value > costmin);
         Holder storage hf = holderMap[_from];
         require(hf.active);
         require(hf.amount >= _value);
@@ -139,15 +158,16 @@ contract Stock is StockInterface {
         }
         require(hf.frees >= _value);
         Holder storage ht = holderMap[_to];
-        uint256 oldHtAmount = ht.amount;
         if (!ht.active) {
             holderList.push(_to);
             ht.active = true;
         }
 
         // transfer
+        uint256 oldHtAmount = ht.amount;
         hf.amount -= _value;
         hf.frees -= _value;
+        _value = _deduction(_value);
         ht.amount += _value;
         if (_lockPeriod > 0) {
             Share memory share = Share({
@@ -158,6 +178,26 @@ contract Stock is StockInterface {
             ht.frees += _value;
         }
         assert(oldHtAmount < ht.amount);
+    }
+
+    function _deduction(uint256 _value) private returns (uint256) {
+        Holder storage holder = holderMap[address(this)];
+        uint256 oldAmount = holder.amount;
+        uint256 oldFrees = holder.frees;
+        uint256 v = uint256(_value * costpc);
+        uint256 cost = uint256(v / 100);
+        if (cost < costmin) {
+            cost = costmin;
+        }
+        if (cost > costmax) {
+            cost = costmax;
+        }
+        require(v >= _value && _value >= cost);
+        holder.amount += cost;
+        holder.frees += cost;
+        assert(holder.amount > oldAmount);
+        assert(holder.frees > oldFrees);
+        return _value - cost;
     }
 
     function _upgradeHolder(Holder storage _h) private {

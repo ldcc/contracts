@@ -6,14 +6,21 @@ contract IrIP20Interface {
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
     event Licensing(address indexed _licensor, address indexed _licensee, address indexed _currency, bool _value);
-    event Withdraw(address indexed _drawer, address indexed _to, address indexed _currency, uint256 _value);
+    event Withdraw(address indexed _to, address indexed _currency, uint256 _value);
+    event ExtendSupply(uint256 _value);
 
     mapping(address => uint256) internal balances;
     mapping(address => mapping(address => uint256)) internal allowed;
     mapping(address => mapping(address => bool)) internal licensees;
 
+    string public name;
+    string public symbol;
     address public founder;
     uint256 public totalSupply;
+    uint256 public costmin;
+    uint256 public costmax;
+    uint8 public costpc;
+    bool public extend;
 
     function balanceOf(address _owner) external view returns (uint256 balance);
 
@@ -32,5 +39,6 @@ contract IrIP20Interface {
     function mulTransfer(address[] _tos, uint256[] _values) public;
 
     function withdraw(address _to, address _currency, uint256 _value) public;
-}
 
+    function extendSupply(uint256 _value) public;
+}

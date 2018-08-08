@@ -8,7 +8,7 @@ contract IrIP20 is IrIP20Interface {
 
     constructor(string _name, string _symbol, uint256 _initialAmount, uint256 _costmin, uint256 _costmax, uint8 _costpc, bool _extend) public payable {
         require(_costpc > 0 && _costpc < 100);
-        require(_costmin > 0 && _costmin >= costmax);
+        require(_costmin > 0 && _costmin <= _costmax);
         name = _name;
         symbol = _symbol;
         totalSupply = _initialAmount * 10 ** uint256(decimals);

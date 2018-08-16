@@ -4,12 +4,14 @@ import "./StockInterface.sol";
 
 contract Stock is StockInterface {
 
-    constructor(string _name, string _symbol, uint256 _initialAmount, uint256 _costmin, uint256 _costmax, uint8 _costpc, bool _extend) public payable {
+    uint256 public constant decimals = 18;
+
+    constructor(string _name, string _symbol, uint256 _supply, uint256 _costmin, uint256 _costmax, uint8 _costpc, bool _extend) public payable {
         require(_costpc > 0 && _costpc < 100);
         require(_costmin > 0 && _costmin <= _costmax);
         name = _name;
         symbol = _symbol;
-        totalSupply = _initialAmount;
+        supply = _supply * 10 ** decimals;
         costmin = _costmin;
         costmax = _costmax;
         costpc = _costpc;
@@ -18,8 +20,8 @@ contract Stock is StockInterface {
         licensees[msg.sender][address(0)] = true;
         licensees[msg.sender][address(this)] = true;
         holderMap[msg.sender].active = true;
-        holderMap[msg.sender].amount = _initialAmount;
-        holderMap[msg.sender].frees = _initialAmount;
+        holderMap[msg.sender].amount = supply;
+        holderMap[msg.sender].frees = supply;
         holderMap[address(this)].active = true;
         holderList.push(msg.sender);
         holderList.push(address(this));
@@ -111,16 +113,17 @@ contract Stock is StockInterface {
         require(extend);
         require(_value > 0);
         Holder storage holder = holderMap[address(this)];
-        uint256 oldSupply = totalSupply;
+        uint256 oldSupply = supply;
         uint256 oldAmount = holder.amount;
         uint256 oldFrees = holder.frees;
-        totalSupply += _value;
-        holder.amount += _value;
-        holder.frees += _value;
-        assert(totalSupply > oldSupply);
+        uint256 extVal = _value * 10 ** decimals;
+        supply += extVal;
+        holder.amount += extVal;
+        holder.frees += extVal;
+        assert(supply > oldSupply);
         assert(holder.amount > oldAmount);
         assert(holder.frees > oldFrees);
-        emit ExtendSupply(_value);
+        emit ExtendSupply(extVal);
     }
 
     function payDividend(address _currency) public {
@@ -129,7 +132,7 @@ contract Stock is StockInterface {
         for (uint256 i = 1; i < holderList.length; i++) {
             address addr = holderList[i];
             if (holderMap[addr].amount > 0) {
-                uint8 percent = uint8(holderMap[addr].amount * 100 / totalSupply);
+                uint8 percent = uint8(holderMap[addr].amount * 100 / supply);
                 _withdraw(addr, _currency, percent * thisBalance / 100);
             }
         }

@@ -4,20 +4,20 @@ import "./IrIP20Interface.sol";
 
 contract IrIP20 is IrIP20Interface {
 
-    uint8 public constant decimals = 18;
+    uint256 public constant decimals = 18;
 
-    constructor(string _name, string _symbol, uint256 _initialAmount, uint256 _costmin, uint256 _costmax, uint8 _costpc, bool _extend) public payable {
+    constructor(string _name, string _symbol, uint256 _supply, uint256 _costmin, uint256 _costmax, uint8 _costpc, bool _extend) public payable {
         require(_costpc > 0 && _costpc < 100);
         require(_costmin > 0 && _costmin <= _costmax);
         name = _name;
         symbol = _symbol;
-        totalSupply = _initialAmount * 10 ** uint256(decimals);
+        supply = _supply * 10 ** decimals;
         costmin = _costmin;
         costmax = _costmax;
         costpc = _costpc;
         extend = _extend;
         founder = msg.sender;
-        balances[msg.sender] = totalSupply;
+        balances[msg.sender] = supply;
         licensees[msg.sender][address(0)] = true;
         licensees[msg.sender][address(this)] = true;
     }
@@ -115,12 +115,12 @@ contract IrIP20 is IrIP20Interface {
         require(msg.sender == founder);
         require(extend);
         require(_value > 0);
-        uint256 extendValue = _value * 10 ** uint256(decimals);
-        uint256 oldSupply = totalSupply;
+        uint256 extendValue = _value * 10 ** decimals;
+        uint256 oldSupply = supply;
         uint256 oldThis = balances[this];
-        totalSupply += extendValue;
+        supply += extendValue;
         balances[this] += extendValue;
-        assert(totalSupply > oldSupply);
+        assert(supply > oldSupply);
         assert(balances[this] > oldThis);
         emit ExtendSupply(_value);
     }

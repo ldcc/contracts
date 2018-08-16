@@ -1,4 +1,4 @@
-// Abstract contract for the full IrIP 20 Token standard
+// Abstract contract for the full Stock standard
 pragma solidity ^0.4.24;
 
 import "./IrIP20Interface.sol";

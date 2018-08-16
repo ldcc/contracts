@@ -14,7 +14,7 @@ contract Ballot {
 
     string public name;
     address public author;
-    uint256 public totalSupply;
+    uint256 public supply;
     uint256 public totalVotes;
     uint256 public startTime;
     uint256 public endTime;
@@ -27,14 +27,14 @@ contract Ballot {
 
     /// main code
 
-    constructor(string _name, uint256 _totalSupply, bytes8[] _names, bytes32[] _descs) public payable {
+    constructor(string _name, uint256 _supply, bytes8[] _names, bytes32[] _descs) public payable {
         require(_names.length > 1);
         require(_names.length == _descs.length);
         name = _name;
         author = msg.sender;
-        totalSupply = _totalSupply;
+        supply = _supply;
         startTime = now;
-        voters[msg.sender] = _totalSupply;
+        voters[msg.sender] = _supply;
         for (uint8 i = 0; i < _names.length; i++) {
             proposals.push(Proposal({
                 index : i + 1,
@@ -45,7 +45,7 @@ contract Ballot {
     }
 
     function poll(uint8 _vote) public {
-        require(totalVotes < totalSupply);
+        require(totalVotes < supply);
         require(_vote > 0 && _vote <= proposals.length);
         require(voters[msg.sender] > 0);
         require(voters[msg.sender] > 0);

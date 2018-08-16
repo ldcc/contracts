@@ -16,7 +16,7 @@ contract IrIP20Interface {
     string public name;
     string public symbol;
     address public founder;
-    uint256 public totalSupply;
+    uint256 public supply;
     uint256 public costmin;
     uint256 public costmax;
     uint8 public costpc;

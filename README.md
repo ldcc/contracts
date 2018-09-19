@@ -1,4 +1,4 @@
-IrChain Contracts
+Smart Contracts
 =================
 
-IrChain contracts basic template.
+Blockchain smart contracts application call 'EIPs' of basic template.

@@ -1,0 +1,10 @@
+pragma solidity >=0.4.22 <0.6.0;
+
+import "./BioInterface.sol";
+
+contract Bioauth is BioInterface {
+
+    constructor() public {
+
+    }
+}

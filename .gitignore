@@ -1,10 +1,13 @@
 # Compiles
 # out/
 
-# Idea tmp
+# Jetbrains
 *.iml
 .idea/
 
-# Test files
+# Tests
 *.js
 *test*
+
+# EVM
+evm/

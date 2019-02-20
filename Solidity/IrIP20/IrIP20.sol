@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.22 <0.6.0;
 
 import "./IrIP20Interface.sol";
 
@@ -6,7 +6,7 @@ contract IrIP20 is IrIP20Interface {
 
     uint256 public constant decimals = 18;
 
-    constructor(string _name, string _symbol, uint256 _supply, uint256 _costmin, uint256 _costmax, uint8 _costpc, bool _extend) public payable {
+    constructor(string memory _name, string memory _symbol, uint256 _supply, uint256 _costmin, uint256 _costmax, uint8 _costpc, bool _extend) public {
         require(_costpc > 0 && _costpc < 100);
         require(_costmin > 0 && _costmin <= _costmax);
         name = _name;
@@ -61,7 +61,7 @@ contract IrIP20 is IrIP20Interface {
     }
 
     function _deduction(uint256 _value) private returns (uint256) {
-        uint256 oldThis = balances[this];
+        uint256 oldThis = balances[address(this)];
         uint256 v = uint256(_value * costpc);
         uint256 cost = uint256(v / 100);
         if (cost < costmin) {
@@ -71,8 +71,8 @@ contract IrIP20 is IrIP20Interface {
             cost = costmax;
         }
         require(v >= _value && _value >= cost);
-        balances[this] += cost;
-        assert(oldThis < balances[this]);
+        balances[address(this)] += cost;
+        assert(oldThis < balances[address(this)]);
         return _value - cost;
     }
 
@@ -89,14 +89,14 @@ contract IrIP20 is IrIP20Interface {
         allowed[_from][msg.sender] -= _value;
     }
 
-    function mulTransfer(address[] _tos, uint256[] _values) public {
+    function mulTransfer(address[] memory _tos, uint256[] memory _values) public {
         require(_tos.length == _values.length);
         for (uint256 i = 0; i < _tos.length; i++) {
             transfer(_tos[i], _values[i]);
         }
     }
 
-    function withdraw(address _to, address _currency, uint256 _value) public {
+    function withdraw(address payable _to, address _currency, uint256 _value) public {
         require(msg.sender == founder || licensees[msg.sender][_currency]);
         if (_currency == address(0)) {
             require(_value > 0);
@@ -105,8 +105,9 @@ contract IrIP20 is IrIP20Interface {
         } else if (_currency == address(this)) {
             _transfer(_currency, _to, _value);
         } else {
-            bytes4 signature = bytes4(keccak256("transfer(address,uint256)"));
-            require(_currency.call.gas(90000)(signature, _to, _value));
+            bytes memory payload = abi.encodeWithSignature("transfer(address,uint256)", _to, _value);
+            (bool success,) = _currency.call.gas(90000)(payload);
+            require(success);
         }
         emit Withdraw(_to, _currency, _value);
     }
@@ -117,11 +118,11 @@ contract IrIP20 is IrIP20Interface {
         require(_value > 0);
         uint256 extendValue = _value * 10 ** decimals;
         uint256 oldSupply = supply;
-        uint256 oldThis = balances[this];
+        uint256 oldThis = balances[address(this)];
         supply += extendValue;
-        balances[this] += extendValue;
+        balances[address(this)] += extendValue;
         assert(supply > oldSupply);
-        assert(balances[this] > oldThis);
+        assert(balances[address(this)] > oldThis);
         emit ExtendSupply(_value);
     }
 }

@@ -1,12 +1,12 @@
 // Abstract contract for the full IrIP 20 Token standard
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.22 <0.6.0;
 
 contract IrIP20Interface {
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
     event Licensing(address indexed _licensor, address indexed _licensee, address indexed _currency, bool _value);
-    event Withdraw(address indexed _to, address indexed _currency, uint256 _value);
+    event Withdraw(address payable indexed _to, address indexed _currency, uint256 _value);
     event ExtendSupply(uint256 _value);
 
     mapping(address => uint256) internal balances;
@@ -36,9 +36,9 @@ contract IrIP20Interface {
 
     function transferFrom(address _from, address _to, uint256 _value) public;
 
-    function mulTransfer(address[] _tos, uint256[] _values) public;
+    function mulTransfer(address[] memory _tos, uint256[] memory _values) public;
 
-    function withdraw(address _to, address _currency, uint256 _value) public;
+    function withdraw(address payable _to, address _currency, uint256 _value) public;
 
     function extendSupply(uint256 _value) public;
 }

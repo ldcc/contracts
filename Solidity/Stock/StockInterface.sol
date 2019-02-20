@@ -1,5 +1,5 @@
 // Abstract contract for the full Stock standard
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.22 <0.6.0;
 
 import "./IrIP20Interface.sol";
 
@@ -30,7 +30,7 @@ contract StockInterface is IrIP20Interface {
 
     function transferFrom(address _from, address _to, uint256 _value, uint256 _lockPeriod) public;
 
-    function mulTransfer(address[] _tos, uint256[] _values, uint256[] _lockPeriods) public;
+    function mulTransfer(address[] memory _tos, uint256[] memory _values, uint256[] memory _lockPeriods) public;
 
     function payDividend(address _currency) public;
 }

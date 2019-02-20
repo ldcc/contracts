@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.22 <0.6.0;
 
 import "./StockInterface.sol";
 
@@ -6,7 +6,7 @@ contract Stock is StockInterface {
 
     uint256 public constant decimals = 18;
 
-    constructor(string _name, string _symbol, uint256 _supply, uint256 _costmin, uint256 _costmax, uint8 _costpc, bool _extend) public payable {
+    constructor(string memory _name, string memory _symbol, uint256 _supply, uint256 _costmin, uint256 _costmax, uint8 _costpc, bool _extend) public {
         require(_costpc > 0 && _costpc < 100);
         require(_costmin > 0 && _costmin <= _costmax);
         name = _name;
@@ -90,19 +90,19 @@ contract Stock is StockInterface {
         allowed[_from][msg.sender] -= _value;
     }
 
-    function mulTransfer(address[] _tos, uint256[] _values) public {
+    function mulTransfer(address[] memory _tos, uint256[] memory _values) public {
         uint256[] memory _lockPeriods = new uint256[](_tos.length);
         mulTransfer(_tos, _values, _lockPeriods);
     }
 
-    function mulTransfer(address[] _tos, uint256[] _values, uint256[] _lockPeriods) public {
+    function mulTransfer(address[] memory _tos, uint256[] memory _values, uint256[] memory _lockPeriods) public {
         require(_tos.length == _values.length && _tos.length == _lockPeriods.length);
         for (uint256 i = 0; i < _tos.length; i++) {
             transfer(_tos[i], _values[i], _lockPeriods[i]);
         }
     }
 
-    function withdraw(address _to, address _currency, uint256 _value) public {
+    function withdraw(address payable _to, address _currency, uint256 _value) public {
         require(msg.sender == founder || licensees[msg.sender][_currency]);
         _withdraw(_to, _currency, _value);
         emit Withdraw(_to, _currency, _value);
@@ -133,13 +133,13 @@ contract Stock is StockInterface {
             address addr = holderList[i];
             if (holderMap[addr].amount > 0) {
                 uint8 percent = uint8(holderMap[addr].amount * 100 / supply);
-                _withdraw(addr, _currency, percent * thisBalance / 100);
+                _withdraw(address(uint160(addr)), _currency, percent * thisBalance / 100);
             }
         }
         emit PayDividend(msg.sender, _currency);
     }
 
-    function _withdraw(address _to, address _currency, uint256 _value) internal {
+    function _withdraw(address payable _to, address _currency, uint256 _value) internal {
         if (_currency == address(0)) {
             require(_value > 0);
             require(address(this).balance >= _value);
@@ -147,8 +147,9 @@ contract Stock is StockInterface {
         } else if (_currency == address(this)) {
             _transfer(_currency, _to, _value, 0);
         } else {
-            bytes4 signature = bytes4(keccak256("transfer(address,uint256)"));
-            require(_currency.call.gas(90000)(signature, _to, _value));
+            bytes memory payload = abi.encodeWithSignature("transfer(address,uint256)", _to, _value);
+            (bool success,) = _currency.call.gas(90000)(payload);
+            require(success);
         }
     }
 

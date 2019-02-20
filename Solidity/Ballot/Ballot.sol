@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity >=0.4.22 <0.6.0;
 
 contract Ballot {
 
@@ -13,7 +13,7 @@ contract Ballot {
     mapping(address => uint256) public voters;
 
     string public name;
-    address public author;
+    address payable public author;
     uint256 public supply;
     uint256 public totalVotes;
     uint256 public startTime;
@@ -27,7 +27,7 @@ contract Ballot {
 
     /// main code
 
-    constructor(string _name, uint256 _supply, bytes8[] _names, bytes32[] _descs) public payable {
+    constructor(string memory _name, uint256 _supply, bytes8[] memory _names, bytes32[] memory _descs) public {
         require(_names.length > 1);
         require(_names.length == _descs.length);
         name = _name;
@@ -70,7 +70,7 @@ contract Ballot {
         assert(voters[_recipient] > recHolds);
     }
 
-    function distributes(address[] _licensees, uint256[] _values) public {
+    function distributes(address[] memory _licensees, uint256[] memory _values) public {
         require(_licensees.length == _values.length);
         for (uint256 i = 0; i < _licensees.length; i++) {
             distribute(_licensees[i], _values[i]);

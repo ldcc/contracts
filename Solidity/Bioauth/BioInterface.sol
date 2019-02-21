@@ -30,5 +30,5 @@ contract BioInterface {
 
     function bind(bytes32 _bioInfo, uint8 _facilityType, uint256 _facilityId, bytes32 _pubKey) public;
 
-    function verify(bytes32 _bioInfo, uint8 _facilityType, uint256 _facilityId, bytes32 _pubKey) external view returns(bool success);
+    function verify(bytes32 _bioInfo, uint8 _facilityType, uint256 _facilityId, bytes32 _pubKey) external returns(bool success);
 }

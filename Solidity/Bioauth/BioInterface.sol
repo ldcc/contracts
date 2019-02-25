@@ -4,31 +4,35 @@ pragma solidity >=0.4.22 <0.6.0;
 contract BioInterface {
 
     struct Privacy {
-        bool exists;
+        bool registed;
         bytes32 bioInfo;
         bytes32 privKey;
-        bytes32[] fMacs;
     }
 
     struct Facility {
-        uint8 fType;
-        uint256 fId;
+        bool occupy;
+        bytes32 owner;
         bytes32 fMac;
         bytes32 pubKey;
         bytes32 cipher;
     }
 
-    event Bind(bytes32 indexed _owner, uint indexed _timestamp);
+    event Regist(bytes32 indexed _register, uint indexed _timestamp);
+    event Bound(bytes32 indexed _owner, uint indexed _timestamp);
+    event UnBound(bytes32 indexed _owner, uint indexed _timestamp);
     event Verify(bytes32 indexed _authorized, uint indexed _timestamp);
 
-    mapping(bytes32 => Privacy) internal privacies;
-    mapping(bytes32 => mapping(bytes32 => Facility)) internal facilitiesOwns;
+    mapping(bytes32 => Privacy) internal privacySaves;
+    mapping(bytes32 => Facility) internal facilitiesOwns;
 
-    function facilitiesOf(bytes32 _owner) external view returns (bytes32[] memory fMacs);
+    // supply privKey??????????
+    function regist(bytes32 _bioInfo, bytes32 _privKey) public;
+
+    function bound(bytes32 _bioInfo, bytes32 _privKey, bytes32 _fMac, bytes32 _pubKey) public;
+
+    function unBound(bytes32 _bioInfo, bytes32 _privKey, bytes32 _fMac, bytes32 _pubKey) public;
+
+    function verify(bytes32 _bioInfo, bytes32 _privKey, bytes32 _fMac, bytes32 _pubKey) public returns (bool success);
 
     function encrypt(Privacy memory _privacy, Facility memory _facility) internal pure returns (bytes32 cipher);
-
-    function bind(bytes32 _bioInfo, uint8 _fType, uint256 _fId, bytes32 _fMac, bytes32 _pubKey) public;
-
-    function verify(bytes32 _bioInfo, uint8 _fType, uint256 _fId, bytes32 _fMac, bytes32 _pubKey) external returns (bool success);
 }
